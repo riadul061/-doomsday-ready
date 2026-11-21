@@ -1,0 +1,26 @@
+# One command: docker compose up --build   ->  http://localhost:8080
+services:
+  api:
+    build: ./backend
+    environment:
+      SEED: "true"          # load the sample MCU data on first start (empty DB only)
+    volumes:
+      - db-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  web:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  db-data:
